@@ -13,6 +13,6 @@ setup(
     license='OSI',
     packages=['ups'],
     package_data={'ups': ['wsdl/*']},
-    install_requires=['suds>=0.4'],
+    install_requires=['suds-jurko>=0.6'],
     test_suite="nose.collector"
 )
