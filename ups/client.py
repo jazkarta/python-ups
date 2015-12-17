@@ -223,3 +223,40 @@ class UPSClient(object):
             return response
         except suds.WebFault as e:
             raise UPSError(e.fault, e.document)
+
+    def single_rate(self, packages, shipper, recipient, packaging_type, service_code):
+        '''Hack to return cost and currency for a single shipping method. It
+        would be better to use request.RequestOption = 'Rate' and return a
+        single service, rather than using Shop, returning all, and grabbing one.
+        '''
+
+        client = self._get_client('RateWS.wsdl')
+        self._add_security_header(client)
+        client.set_options(location='https://onlinetools.ups.com/webservices/Rate')
+
+        request = client.factory.create('ns0:RequestType')
+        request.RequestOption = 'Shop'
+
+        classification = client.factory.create('ns2:CodeDescriptionType')
+        classification.Code = '01'  # Get rates for the shipper account
+        classification.Description = 'Classification'  # Get rates for the shipper account
+
+        pickup = client.factory.create('ns2:PickupType')
+        pickup.Code = '01'
+        pickup.Description = 'Daily Pickup'
+
+        shipment = self._create_shipment(client, packages, shipper, recipient,
+            packaging_type, namespace='ns2')
+        shipment.ShipmentRatingOptions.NegotiatedRatesIndicator = ''
+
+        try:
+            response = client.service.ProcessRate(Request=request, PickupType=pickup,
+                CustomerClassification=classification, Shipment=shipment)
+
+            service_lookup = dict(SERVICES)
+
+            cost = [(r.TotalCharges.MonetaryValue, r.TotalCharges.CurrencyCode) for r in response.RatedShipment if r.Service.Code == service_code][0]
+
+            return cost
+        except suds.WebFault as e:
+            raise UPSError(e.fault, e.document)
