@@ -1,5 +1,5 @@
 # coding: utf-8
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import urllib.parse as urlparse
 import os
 import suds

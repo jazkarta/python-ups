@@ -4,7 +4,7 @@ import re
 
 class Package(object):
     def __init__(self, weight, length, width, height, value=0,
-        require_signature=False, reference=u''):
+        require_signature=False, reference=''):
         self.weight = weight
         self.length = length
         self.width = width
