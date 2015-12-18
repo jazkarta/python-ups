@@ -1,6 +1,6 @@
 # coding: utf-8
 import urllib
-import urlparse
+import urllib.parse as urlparse
 import os
 import suds
 import logging
