@@ -7,6 +7,7 @@ import logging
 from suds.client import Client
 from suds.sax.element import Element
 from suds.plugin import MessagePlugin
+from pycountry import countries
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +86,8 @@ class UPSClient(object):
         client.set_options(soapheaders=security)
 
     def _normalized_country_code(self, country):
-        country_lookup = {
-            'usa': 'US',
-            'united states': 'US',
-        }
-        return country_lookup.get(country.lower(), country)
+        c = country.get(name=country)
+        return c.alpha2
 
     def wsdlURL(self, wsdl_name):
         wsdl_file_path = os.path.join(self.wsdl_dir, wsdl_name)
