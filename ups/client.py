@@ -42,8 +42,8 @@ class UPSError(Exception):
         self.fault = fault
         self.document = document
 
-        code = self.document.childAtPath('/detail/Errors/ErrorDetail/PrimaryErrorCode/Code').getText()
-        text = self.document.childAtPath('/detail/Errors/ErrorDetail/PrimaryErrorCode/Description').getText()
+        code = self.document.childAtPath('Envelope/Body/Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Code').getText()
+        text = self.document.childAtPath('Envelope/Body/Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Description').getText()
         error_text = 'UPS Error %s: %s' % (code, text)
 
         super(UPSError, self).__init__(error_text)
@@ -253,10 +253,7 @@ class UPSClient(object):
             response = client.service.ProcessRate(Request=request, PickupType=pickup,
                 CustomerClassification=classification, Shipment=shipment)
 
-            service_lookup = dict(SERVICES)
-
-            cost = [(r.TotalCharges.MonetaryValue, r.TotalCharges.CurrencyCode) for r in response.RatedShipment if r.Service.Code == service_code][0]
-
-            return cost
+            cost = [(r.TotalCharges.MonetaryValue, r.TotalCharges.CurrencyCode) for r in response.RatedShipment if r.Service.Code == service_code]
+            return cost[0]
         except suds.WebFault as e:
             raise UPSError(e.fault, e.document)
