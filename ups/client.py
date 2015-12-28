@@ -86,8 +86,16 @@ class UPSClient(object):
         client.set_options(soapheaders=security)
 
     def _normalized_country_code(self, country):
-        c = countries.get(name=country)
-        return c.alpha2
+        try:
+            c = countries.get(alpha2 = country)
+            return country
+        except KeyError:
+            try:
+                c = countries.get(name=country)
+                return c.alpha2
+            except KeyError:
+                print "Country in address must be a valid pycountry name."
+                raise
 
     def wsdlURL(self, wsdl_name):
         wsdl_file_path = os.path.join(self.wsdl_dir, wsdl_name)
