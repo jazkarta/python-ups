@@ -94,7 +94,7 @@ class UPSClient(object):
                 c = countries.get(name=country)
                 return c.alpha2
             except KeyError:
-                print "Country in address must be a valid pycountry name."
+                print("Country in address must be a valid pycountry name.")
                 raise
 
     def wsdlURL(self, wsdl_name):
