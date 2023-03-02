@@ -1,3 +1,5 @@
 coverage==3.5.2
 nose==1.2.1
-suds-jurko==0.6
+suds==0.4
+future==0.18.2
+pycountry==22.3.5
