@@ -1,10 +1,8 @@
-# coding: utf-8
-
 from future.standard_library import install_aliases
 install_aliases()
 
-import urllib.request, urllib.parse, urllib.error
-import urllib.parse as urlparse
+import urllib.request
+from urllib.parse import urljoin
 import os
 import suds
 import logging
@@ -105,7 +103,7 @@ class UPSClient(object):
         wsdl_file_path = os.path.join(self.wsdl_dir, wsdl_name)
         # Get the os specific url to deal with windows drive letter
         wsdl_file_url = urllib.request.pathname2url(wsdl_file_path)
-        wsdl_url = urlparse.urljoin('file://', wsdl_file_url)
+        wsdl_url = urljoin('file://', wsdl_file_url)
         return wsdl_url
 
     def _get_client(self, wsdl):
