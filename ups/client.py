@@ -89,12 +89,12 @@ class UPSClient(object):
 
     def _normalized_country_code(self, country):
         try:
-            c = countries.get(alpha2 = country)
+            c = countries.get(alpha_2 = country)
             return country
         except KeyError:
             try:
                 c = countries.get(name=country)
-                return c.alpha2
+                return c.alpha_2
             except KeyError:
                 print("Country in address must be a valid pycountry name.")
                 raise
@@ -115,18 +115,31 @@ class UPSClient(object):
     def _create_shipment(self, client, packages, shipper_address, recipient_address, box_shape, namespace='ns3', create_reference_number=True, can_add_delivery_confirmation=True):
         shipment = client.factory.create('{}:ShipmentType'.format(namespace))
 
+        def create_node(name):
+            return client.factory.create(('{}:' + name).format(namespace))
+
         for i, p in enumerate(packages):
-            package = client.factory.create('{}:PackageType'.format(namespace))
+            package = create_node('PackageType')
 
             if hasattr(package, 'Packaging'):
                 package.Packaging.Code = box_shape
             elif hasattr(package, 'PackagingType'):
+                if not package.PackagingType:
+                    package.PackagingType = create_node('PackagingType')
                 package.PackagingType.Code = box_shape
+
+            if not package.Dimensions:
+                package.Dimensions = create_node('Dimensions')
+                package.Dimensions.UnitOfMeasurement = create_node('UnitOfMeasurement')
 
             package.Dimensions.UnitOfMeasurement.Code = self.dimension_unit
             package.Dimensions.Length = p.length
             package.Dimensions.Width = p.width
             package.Dimensions.Height = p.height
+
+            if not package.PackageWeight:
+                package.PackageWeight = create_node('PackageWeight')
+                package.PackageWeight.UnitOfMeasurement = create_node('UnitOfMeasurement')
 
             package.PackageWeight.UnitOfMeasurement.Code = self.weight_unit
             package.PackageWeight.Weight = p.weight
@@ -176,6 +189,7 @@ class UPSClient(object):
         if recipient_address.is_residence:
             shipment.ShipTo.Address.ResidentialAddressIndicator = ''
 
+        shipment.Service = create_node("Service")
         shipment.Service.Code = '08'
         shipment.Service.Description = 'Service Code'
         shipment.ShipmentServiceOptions = ''
@@ -195,17 +209,17 @@ class UPSClient(object):
         classification.Code = '01'  # Get rates for the shipper account
         classification.Description = 'Classification'  # Get rates for the shipper account
 
-        pickup = client.factory.create('ns2:PickupType')
-        pickup.Code = '01'
-        pickup.Description = 'Daily Pickup'
-
         shipment = self._create_shipment(client, packages, shipper, recipient,
             packaging_type, namespace='ns2')
+
+        shipment.ShipmentRatingOptions = client.factory.create("ns2:ShipmentRatingOptions")
         shipment.ShipmentRatingOptions.NegotiatedRatesIndicator = ''
 
         try:
-            response = client.service.ProcessRate(Request=request, PickupType=pickup,
-                CustomerClassification=classification, Shipment=shipment)
+            response = client.service.ProcessRate(
+                Request=request,
+                CustomerClassification=classification,
+                Shipment=shipment)
 
             service_lookup = dict(SERVICES)
 
