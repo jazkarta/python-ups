@@ -52,11 +52,6 @@ class UPSError(Exception):
         super(UPSError, self).__init__(error_text)
 
 
-class FixRequestNamespacePlug(MessagePlugin):
-    def marshalled(self, context):
-        context.envelope.getChild('Body').getChild('RateRequest').getChild('Request').prefix = 'ns0'
-
-
 class UPSClient(object):
 
     def __init__(self, credentials, weight_unit='KGS', dimension_unit='CM', currency_code='USD', debug=True):
@@ -110,7 +105,7 @@ class UPSClient(object):
         wsdl_url = self.wsdlURL(wsdl)
 
         # Setting prefixes=False does not help
-        return Client(wsdl_url, plugins=[FixRequestNamespacePlug()])
+        return Client(wsdl_url)
 
     def _create_shipment(self, client, packages, shipper_address, recipient_address, box_shape, namespace='ns3', create_reference_number=True, can_add_delivery_confirmation=True):
         shipment = client.factory.create('{}:ShipmentType'.format(namespace))
